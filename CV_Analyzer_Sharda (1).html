@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CV Analyzer — Sharda School of Business Studies</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:100vh;
+  color:#1a1a1a;
+  background-color:#0a1628;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(255,255,255,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(255,255,255,0.02) 0%, transparent 60%);
+}
+
+/* ── Hero banner ── */
+.hero{
+  background: linear-gradient(135deg, #0d1f3c 0%, #102a50 60%, #0d2244 100%);
+  border-bottom: 3px solid #c8a951;
+  padding: 2rem 1rem 1.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(200,169,81,0.03) 40px, rgba(200,169,81,0.03) 41px),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(200,169,81,0.03) 40px, rgba(200,169,81,0.03) 41px);
+  pointer-events:none;
+}
+.hero-logo{
+  display:block;
+  height:70px;
+  margin:0 auto 1rem;
+  object-fit:contain;
+  filter: brightness(0) invert(1);
+}
+.hero-logo-fallback{
+  display:none;
+  width:70px;height:70px;
+  margin:0 auto 1rem;
+  background:#c8a951;
+  border-radius:50%;
+  align-items:center;justify-content:center;
+}
+.school-name{
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#c8a951;
+  margin-bottom:6px;
+}
+.univ-name{
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.45);
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:30px;
+  font-weight:700;
+  color:#ffffff;
+  margin-bottom:6px;
+  line-height:1.2;
+}
+.hero-sub{
+  font-size:14px;
+  color:rgba(255,255,255,0.55);
+  margin-bottom:0;
+}
+.gold-line{
+  width:60px;height:3px;
+  background:#c8a951;
+  margin:14px auto 0;
+  border-radius:99px;
+}
+
+/* ── Main content ── */
+.main{
+  max-width:820px;
+  margin:0 auto;
+  padding:1.75rem 1rem 3rem;
+}
+
+/* ── Steps ── */
+.steps{
+  display:flex;
+  margin-bottom:1.5rem;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+}
+.step{
+  flex:1;text-align:center;padding:10px 4px;
+  font-size:12px;font-weight:500;
+  color:rgba(255,255,255,0.35);
+  border-right:1px solid rgba(255,255,255,0.08);
+  transition:all .2s;
+}
+.step:last-child{border-right:none}
+.step.active{background:#c8a951;color:#0d1f3c;font-weight:700}
+.step.done{background:rgba(46,125,50,0.3);color:#81c784}
+
+/* ── Cards ── */
+.card{
+  background:#ffffff;
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:1rem;
+  box-shadow:0 4px 24px rgba(0,0,0,0.25);
+}
+.card-head{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 20px;
+  border-bottom:1px solid #f0f0f0;
+  background:#fafafa;
+}
+.card-head h2{font-size:15px;font-weight:600;color:#111}
+.card-body{padding:20px}
+
+/* ── Drop zone ── */
+.drop{
+  border:2px dashed #b8d0ed;border-radius:12px;
+  padding:2.5rem 1.5rem;text-align:center;cursor:pointer;
+  transition:all .15s;background:#f4f8fd;
+}
+.drop:hover,.drop.over{background:#e5f0ff;border-color:#1565c0}
+.drop-icon{width:54px;height:54px;margin:0 auto 14px;background:#deeeff;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.drop h3{font-size:16px;font-weight:600;color:#111;margin-bottom:5px}
+.drop p{font-size:13px;color:#888}
+.size-pill{display:inline-block;font-size:11px;background:#e8f5e9;color:#2e7d32;padding:2px 10px;border-radius:99px;margin-left:6px;font-weight:600}
+
+/* ── Chip ── */
+.chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #ddd;border-radius:99px;padding:6px 14px;font-size:13px;color:#333;margin-top:14px}
+.chip-x{cursor:pointer;color:#aaa;font-size:18px;line-height:1}
+.chip-x:hover{color:#e53935}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 26px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#333;transition:all .12s;font-family:inherit}
+.btn:hover{background:#f5f5f5}
+.btn.pri{background:#0d2244;border-color:#0d2244;color:#fff}
+.btn.pri:hover{background:#c8a951;border-color:#c8a951;color:#0d2244}
+.btn.grn{background:#1b5e20;border-color:#1b5e20;color:#fff}
+.btn.grn:hover{background:#2e7d32;border-color:#2e7d32}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.center{display:flex;justify-content:center;margin-top:1.25rem}
+
+/* ── Alerts ── */
+.err{background:#fff3f3;border:1px solid #ffcdd2;border-radius:8px;padding:12px 16px;font-size:13px;color:#c62828;margin-top:10px;line-height:1.5}
+.warn{background:#fffde7;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;font-size:13px;color:#e65100;margin-top:10px;line-height:1.5}
+.ok-note{font-size:13px;color:#2e7d32;margin-top:10px;padding:10px 14px;background:#e8f5e9;border-radius:8px;border:1px solid #c8e6c9}
+
+/* ── Loader ── */
+.loader-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:3rem}
+.spinner{width:38px;height:38px;border:3px solid #e0e0e0;border-top-color:#0d2244;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-msg{font-size:14px;color:#555}
+.progress-bar{width:240px;height:4px;background:#e0e0e0;border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#0d2244,#c8a951);border-radius:99px;width:0%;transition:width .3s}
+
+/* ── Score ring ── */
+.score-wrap{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.ring-box{position:relative;width:96px;height:96px;flex-shrink:0}
+.ring-box svg{transform:rotate(-90deg)}
+.ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-val span{font-size:26px;font-weight:700;color:#111;line-height:1}
+.ring-val small{font-size:11px;color:#888;font-weight:500}
+
+/* ── Score bars ── */
+.bars{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-width:180px}
+.bar-item label{font-size:12px;color:#666;display:block;margin-bottom:5px;font-weight:500}
+.bar-track{height:6px;border-radius:99px;background:#eeeeee;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width 1s ease}
+
+/* ── Suggestions ── */
+.sug-list{display:flex;flex-direction:column;gap:10px}
+.sug{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:8px;border:1px solid #eee;background:#fafafa}
+.sug-dot{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.sdh{background:#ffebee;color:#c62828}
+.sdm{background:#fff8e1;color:#e65100}
+.sdl{background:#e8f5e9;color:#2e7d32}
+.sug-cat{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.sug-txt{font-size:13px;color:#333;line-height:1.6}
+
+/* ── Preview ── */
+.preview{background:#fafafa;border-radius:8px;padding:16px 18px;font-size:12.5px;color:#333;line-height:1.9;white-space:pre-wrap;max-height:360px;overflow-y:auto;border:1px solid #eee;font-family:'Courier New',monospace}
+.dl-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+/* ── Info card ── */
+.info-card{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(200,169,81,0.25);
+  border-radius:14px;padding:16px 20px;
+  margin-bottom:1rem;
+}
+.info-card-title{font-size:13px;font-weight:600;color:#c8a951;margin-bottom:10px;letter-spacing:.04em}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info-item{font-size:13px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:6px}
+.info-check{color:#c8a951;font-size:14px}
+
+/* ── Footer ── */
+.footer{
+  text-align:center;margin-top:2rem;padding-bottom:1.5rem;
+  font-size:12px;color:rgba(255,255,255,0.25);
+}
+.footer span{color:#c8a951;opacity:.7}
+
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+<!-- HERO BANNER -->
+<div class="hero">
+  <img
+    class="hero-logo"
+    src="https://www.sharda.ac.in/attachments/site_logo/logo111.png"
+    alt="Sharda University"
+    onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex'"
+  />
+  <div class="logo-fallback" id="logoFallback" style="display:none;width:64px;height:64px;margin:0 auto 1rem;background:#c8a951;border-radius:50%;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#0d2244">S</div>
+  <div class="school-name">Sharda School of Business Studies</div>
+  <div class="univ-name">Sharda University &nbsp;·&nbsp; Greater Noida, India</div>
+  <h1>CV Analyzer &amp; Enhancer</h1>
+  <p class="hero-sub">Upload your CV &middot; Get AI-powered feedback &middot; Download a polished Word file</p>
+  <div class="gold-line"></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="steps">
+    <div class="step active" id="s1">1 &middot; Upload</div>
+    <div class="step" id="s2">2 &middot; Analyze</div>
+    <div class="step" id="s3">3 &middot; Review</div>
+    <div class="step" id="s4">4 &middot; Download</div>
+  </div>
+
+  <!-- Upload -->
+  <div id="uploadSec">
+    <div class="card">
+      <div class="card-body">
+        <div class="drop" id="dropZone" onclick="document.getElementById('fi').click()">
+          <div class="drop-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3v12M8 7l4-4 4 4M4 17h16v2H4v-2z" stroke="#0d2244" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Drop your CV here or click to browse</h3>
+          <p>PDF or Word (.docx) <span class="size-pill">up to 100 MB</span></p>
+          <div id="chipWrap" style="display:none">
+            <div class="chip">
+              <span id="fName"></span>
+              <span id="fSize" style="color:#aaa;font-size:12px;margin-left:2px"></span>
+              <span class="chip-x" onclick="clearFile(event)">&#215;</span>
+            </div>
+          </div>
+        </div>
+        <input type="file" id="fi" accept=".pdf,.docx,.doc" onchange="pickFile(event)"/>
+        <div id="warnBox" class="warn" style="display:none">Files over 32 MB may take longer. For best results keep your CV under 32 MB.</div>
+        <div class="center">
+          <button class="btn pri" id="analyzeBtn" disabled onclick="runAnalysis()">Analyze my CV &rarr;</button>
+        </div>
+        <div id="errBox" class="err" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">&#10024; What this tool checks</div>
+      <div class="info-grid">
+        <div class="info-item"><span class="info-check">&#10003;</span> Grammar &amp; language</div>
+        <div class="info-item"><span class="info-check">&#10003;</span> Structure &amp; formatting</div>
+        <div class="info-item"><span class="info-check">&#10003;</span> Missing sections</div>
+        <div class="info-item"><span class="info-check">&#10003;</span> ATS job portal friendliness</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loadSec" style="display:none">
+    <div class="card">
+      <div class="loader-wrap">
+        <div class="spinner"></div>
+        <div class="loader-msg" id="lMsg">Reading your CV...</div>
+        <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultSec" style="display:none">
+
+    <div class="card">
+      <div class="card-head">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.8 3.6L14 5.5l-3 2.9.7 4.1L8 10.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="#0d2244" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <h2>Overall score</h2>
+      </div>
+      <div class="card-body">
+        <div class="score-wrap">
+          <div class="ring-box">
+            <svg width="96" height="96" viewBox="0 0 96 96">
+              <circle cx="48" cy="48" r="38" fill="none" stroke="#eeeeee" stroke-width="8"/>
+              <circle id="ringCircle" cx="48" cy="48" r="38" fill="none" stroke="#0d2244" stroke-width="8" stroke-dasharray="238.8" stroke-dashoffset="238.8" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-val"><span id="scoreNum">0</span><small>/100</small></div>
+          </div>
+          <div class="bars" id="barsWrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M2 4h8M2 12h10" stroke="#0d2244" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <h2>Suggestions for improvement</h2>
+      </div>
+      <div class="card-body"><div class="sug-list" id="sugList"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2h7l3 3v9H3V2z" stroke="#0d2244" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 2v3h3M5 7h6M5 10h4" stroke="#0d2244" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <h2>Refined CV preview</h2>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px;color:#777;margin-bottom:10px">Your CV has been rewritten with strong action verbs, ATS keywords and a clean structure.</p>
+        <div class="preview" id="previewBox"></div>
+        <div class="dl-row">
+          <button class="btn grn" id="dlBtn" onclick="downloadDocx()">&#8595; Download as Word (.docx)</button>
+          <button class="btn" onclick="resetApp()">Analyze another CV</button>
+        </div>
+        <div id="dlNote" class="ok-note" style="display:none">Your refined CV has been downloaded! Open it in Microsoft Word or Google Docs.</div>
+      </div>
+    </div>
+
+  </div><!-- /resultSec -->
+
+  <div class="footer">
+    <span>Sharda School of Business Studies</span> &nbsp;&middot;&nbsp; Sharda University, Greater Noida &nbsp;&middot;&nbsp; Powered by Claude AI
+  </div>
+
+</div><!-- /main -->
+
+<script>
+var b64=null,fName='',cvText='',parsed=null;
+var MAX_BYTES=100*1024*1024;
+var WARN_BYTES=32*1024*1024;
+var API_KEY='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';
+
+var dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+
+function pickFile(e){if(e.target.files[0])loadFile(e.target.files[0]);}
+function fmtSize(b){return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.round(b/1024)+' KB';}
+
+function loadFile(f){
+  var ext=f.name.split('.').pop().toLowerCase();
+  if(['pdf','docx','doc'].indexOf(ext)===-1){showErr('Please upload a PDF or Word (.docx) file.');return;}
+  if(f.size>MAX_BYTES){showErr('File too large. Maximum size is 100 MB.');return;}
+  hideErr();
+  document.getElementById('warnBox').style.display=f.size>WARN_BYTES?'block':'none';
+  var r=new FileReader();
+  r.onload=function(ev){
+    b64=ev.target.result.split(',')[1];fName=f.name;
+    document.getElementById('fName').textContent=f.name;
+    document.getElementById('fSize').textContent='('+fmtSize(f.size)+')';
+    document.getElementById('chipWrap').style.display='block';
+    document.getElementById('analyzeBtn').disabled=false;
+  };
+  r.readAsDataURL(f);
+}
+
+function clearFile(e){
+  e.stopPropagation();b64=null;fName='';
+  document.getElementById('chipWrap').style.display='none';
+  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('fi').value='';
+  document.getElementById('warnBox').style.display='none';
+}
+
+function setStep(n){
+  for(var i=1;i<=4;i++)document.getElementById('s'+i).className='step'+(i<n?' done':i===n?' active':'');
+}
+function showErr(m){var b=document.getElementById('errBox');b.textContent=m;b.style.display='block';}
+function hideErr(){document.getElementById('errBox').style.display='none';}
+
+var MSGS=['Reading your CV...','Checking grammar and language...','Analyzing structure...','Reviewing missing sections...','Checking ATS compatibility...','Writing your refined CV...'];
+var msgIdx=0,msgTimer=null,progTimer=null,progVal=0;
+
+function startLoader(){
+  msgIdx=0;progVal=0;
+  document.getElementById('lMsg').textContent=MSGS[0];
+  document.getElementById('progFill').style.width='0%';
+  msgTimer=setInterval(function(){if(++msgIdx<MSGS.length)document.getElementById('lMsg').textContent=MSGS[msgIdx];},2500);
+  progTimer=setInterval(function(){progVal=Math.min(progVal+1,88);document.getElementById('progFill').style.width=progVal+'%';},150);
+}
+function stopLoader(){
+  clearInterval(msgTimer);clearInterval(progTimer);
+  document.getElementById('progFill').style.width='100%';
+}
+
+async function extractDocxText(b64str){
+  try{
+    var bin=atob(b64str),bytes=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    var zip=await JSZip.loadAsync(bytes);
+    var xmlFile=zip.file('word/document.xml');
+    if(!xmlFile)return 'Could not read document.xml';
+    var xmlStr=await xmlFile.async('string');
+    var text=xmlStr
+      .replace(/<w:br[^>]*\/>/gi,'\n').replace(/<\/w:p>/gi,'\n')
+      .replace(/<[^>]+>/g,' ')
+      .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ')
+      .replace(/ {2,}/g,' ').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+    return text.length>12000?text.substring(0,12000)+'\n[truncated]':text;
+  }catch(err){return 'Error reading file: '+err.message;}
+}
+
+async function runAnalysis(){
+  if(!b64)return;
+  document.getElementById('uploadSec').style.display='none';
+  document.getElementById('loadSec').style.display='block';
+  document.getElementById('resultSec').style.display='none';
+  setStep(2);startLoader();
+
+  var ext=fName.split('.').pop().toLowerCase();
+  var isPDF=(ext==='pdf');
+
+  var SYS=[
+    'You are an expert CV coach for MBA and business students at Sharda School of Business Studies, Sharda University, India.',
+    'Analyze the CV carefully and respond with ONLY a raw JSON object.',
+    'Do NOT wrap in markdown code fences. Do NOT add any explanation. Output JSON only.',
+    '',
+    'Required JSON format (replace placeholder values with real analysis):',
+    '{',
+    '  "scores": {',
+    '    "overall": 70,',
+    '    "grammar": 65,',
+    '    "structure": 72,',
+    '    "completeness": 68,',
+    '    "ats": 60',
+    '  },',
+    '  "suggestions": [',
+    '    { "priority": "high", "category": "Missing Sections", "text": "Add a professional summary at the top of your CV." }',
+    '  ],',
+    '  "refined_cv": {',
+    '    "name": "Student Name",',
+    '    "contact": "email@example.com | +91-9999999999 | LinkedIn URL | City, India",',
+    '    "summary": "Motivated MBA student...",',
+    '    "education": [{ "degree": "MBA Finance", "institution": "Sharda School of Business Studies, Sharda University", "year": "2025", "score": "8.2 CGPA" }],',
+    '    "skills": { "technical": ["Financial Modeling", "Excel", "Tally"], "soft": ["Leadership", "Communication", "Analytical Thinking"] },',
+    '    "experience": [{ "title": "Finance Intern", "org": "Company Name", "duration": "Jun 2024 - Aug 2024", "bullets": ["Managed accounts payable reducing processing time by 25%"] }],',
+    '    "projects": [{ "name": "Market Research Project", "tech": "SPSS, Excel", "bullets": ["Conducted primary research with 200+ respondents"] }],',
+    '    "certifications": ["CFA Level 1", "Google Analytics Certificate"],',
+    '    "achievements": ["First place, Inter-university Case Study Competition 2024"]',
+    '  }',
+    '}',
+    '',
+    'Rules:',
+    '- All score values must be integers between 0 and 100.',
+    '- Give 5 to 8 suggestions specific to this CV.',
+    '- Tune suggestions for Indian job market: BFSI, consulting, FMCG, marketing, finance, operations, PSUs.',
+    '- For freshers, suggest adding internships, live projects, certifications, case competitions.',
+    '- Rewrite refined_cv fully using the actual CV content with strong action verbs and ATS keywords.',
+    '- Output ONLY the JSON object. Nothing before it, nothing after it.'
+  ].join('\n');
+
+  try{
+    var msgContent;
+    if(isPDF){
+      msgContent=[
+        {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+        {type:'text',text:'Analyze this CV. Output ONLY the raw JSON object, nothing else.'}
+      ];
+    } else {
+      var docText=await extractDocxText(b64);
+      msgContent=[{type:'text',text:'Analyze this CV. Output ONLY the raw JSON object, nothing else.\n\nCV TEXT:\n'+docText}];
+    }
+
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':API_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        system:SYS,
+        messages:[{role:'user',content:msgContent}]
+      })
+    });
+
+    stopLoader();
+
+    if(!res.ok){
+      var errBody=await res.text().catch(function(){return '';});
+      throw new Error('API returned HTTP '+res.status+'. '+errBody.substring(0,200));
+    }
+
+    var data=await res.json();
+    if(data.error)throw new Error(data.error.message||'API error');
+
+    var raw=data.content.map(function(c){return c.text||'';}).join('').trim();
+    var jsonStr=raw;
+    var fenceMatch=raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if(fenceMatch){jsonStr=fenceMatch[1].trim();}
+    else{
+      var s=raw.indexOf('{'),e=raw.lastIndexOf('}');
+      if(s!==-1&&e!==-1&&e>s)jsonStr=raw.substring(s,e+1);
+    }
+
+    parsed=JSON.parse(jsonStr);
+    if(!parsed.scores||!parsed.suggestions||!parsed.refined_cv)
+      throw new Error('AI response was missing required fields. Please try again.');
+
+    cvText=buildCVText(parsed.refined_cv);
+    renderResults(parsed);
+    setStep(3);
+    document.getElementById('loadSec').style.display='none';
+    document.getElementById('resultSec').style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+
+  }catch(e){
+    stopLoader();
+    document.getElementById('loadSec').style.display='none';
+    document.getElementById('uploadSec').style.display='block';
+    setStep(1);
+    showErr('Analysis failed: '+(e.message||'Unknown error. Please try again.'));
+  }
+}
+
+function buildCVText(cv){
+  var t=(cv.name||'')+'\n'+(cv.contact||'')+'\n\n';
+  if(cv.summary)t+='PROFESSIONAL SUMMARY\n'+cv.summary+'\n\n';
+  if((cv.education||[]).length){
+    t+='EDUCATION\n';
+    cv.education.forEach(function(e){t+=(e.degree||'')+' — '+(e.institution||'')+(e.year?' ('+e.year+')':'')+(e.score?' | '+e.score:'')+'\n';});
+    t+='\n';
+  }
+  if(cv.skills&&((cv.skills.technical||[]).length||(cv.skills.soft||[]).length)){
+    t+='SKILLS\n';
+    if((cv.skills.technical||[]).length)t+='Technical: '+cv.skills.technical.join(', ')+'\n';
+    if((cv.skills.soft||[]).length)t+='Soft Skills: '+cv.skills.soft.join(', ')+'\n';
+    t+='\n';
+  }
+  if((cv.experience||[]).length){
+    t+='EXPERIENCE\n';
+    cv.experience.forEach(function(ex){
+      t+=(ex.title||'')+' | '+(ex.org||'')+' | '+(ex.duration||'')+'\n';
+      (ex.bullets||[]).forEach(function(b){t+='  * '+b+'\n';});
+    });
+    t+='\n';
+  }
+  if((cv.projects||[]).length){
+    t+='PROJECTS\n';
+    cv.projects.forEach(function(p){
+      t+=(p.name||'')+(p.tech?' | '+p.tech:'')+'\n';
+      (p.bullets||[]).forEach(function(b){t+='  * '+b+'\n';});
+    });
+    t+='\n';
+  }
+  var certs=(cv.certifications||[]).filter(function(c){return c&&c.length>2;});
+  if(certs.length){t+='CERTIFICATIONS\n';certs.forEach(function(c){t+='  * '+c+'\n';});t+='\n';}
+  var ach=(cv.achievements||[]).filter(function(a){return a&&a.length>2;});
+  if(ach.length){t+='ACHIEVEMENTS\n';ach.forEach(function(a){t+='  * '+a+'\n';});}
+  return t.trim();
+}
+
+function renderResults(r){
+  var s=r.scores;
+  var ov=Math.min(100,Math.max(0,parseInt(s.overall)||0));
+  var circ=238.8;
+  setTimeout(function(){
+    var el=document.getElementById('ringCircle');
+    el.style.transition='stroke-dashoffset 1s ease';
+    el.style.strokeDashoffset=circ-(circ*ov/100);
+    animNum('scoreNum',0,ov,900);
+  },100);
+
+  var bdata=[
+    {label:'Grammar & Language',val:parseInt(s.grammar)||0,col:'#1565c0'},
+    {label:'Structure',val:parseInt(s.structure)||0,col:'#00695c'},
+    {label:'Completeness',val:parseInt(s.completeness)||0,col:'#c8a951'},
+    {label:'ATS Friendliness',val:parseInt(s.ats)||0,col:'#6a1b9a'}
+  ];
+  document.getElementById('barsWrap').innerHTML=bdata.map(function(b){
+    return '<div class="bar-item"><label>'+b.label+' &mdash; '+b.val+'/100</label>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:0%;background:'+b.col+'" data-t="'+b.val+'"></div></div></div>';
+  }).join('');
+  setTimeout(function(){document.querySelectorAll('.bar-fill').forEach(function(el){el.style.width=el.dataset.t+'%';});},200);
+
+  var pm={high:{cls:'sdh',sym:'!'},medium:{cls:'sdm',sym:'~'},low:{cls:'sdl',sym:'&#10003;'}};
+  document.getElementById('sugList').innerHTML=r.suggestions.map(function(sg){
+    var p=pm[sg.priority]||pm.medium;
+    return '<div class="sug"><div class="sug-dot '+p.cls+'">'+p.sym+'</div>'+
+      '<div><div class="sug-cat">'+(sg.category||'')+'</div><div class="sug-txt">'+(sg.text||'')+'</div></div></div>';
+  }).join('');
+  document.getElementById('previewBox').textContent=cvText;
+}
+
+function animNum(id,from,to,dur){
+  var el=document.getElementById(id),t0=performance.now();
+  function step(now){var t=Math.min((now-t0)/dur,1);el.textContent=Math.round(from+(to-from)*t);if(t<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+
+async function downloadDocx(){
+  var btn=document.getElementById('dlBtn');
+  btn.disabled=true;btn.textContent='Generating...';
+  try{
+    var cv=parsed.refined_cv,D=docx,BLUE='0d2244';
+    function makeH(txt){return new D.Paragraph({spacing:{before:280,after:80},border:{bottom:{style:D.BorderStyle.SINGLE,size:4,color:'c8a951',space:2}},children:[new D.TextRun({text:txt.toUpperCase(),bold:true,size:22,color:BLUE,font:'Arial'})]});}
+    function makeBullet(txt){return new D.Paragraph({numbering:{reference:'b',level:0},spacing:{before:24,after:24},children:[new D.TextRun({text:txt,size:20,font:'Arial'})]});}
+    var children=[];
+    children.push(new D.Paragraph({alignment:D.AlignmentType.CENTER,spacing:{before:0,after:40},children:[new D.TextRun({text:cv.name||'Your Name',bold:true,size:40,font:'Arial',color:'111111'})]}));
+    children.push(new D.Paragraph({alignment:D.AlignmentType.CENTER,spacing:{before:0,after:20},children:[new D.TextRun({text:'Sharda School of Business Studies, Sharda University',size:18,font:'Arial',color:'0d2244',italics:true})]}));
+    children.push(new D.Paragraph({alignment:D.AlignmentType.CENTER,spacing:{before:0,after:200},children:[new D.TextRun({text:cv.contact||'',size:18,font:'Arial',color:'555555'})]}));
+    if(cv.summary){children.push(makeH('Professional Summary'));children.push(new D.Paragraph({spacing:{before:60,after:80},children:[new D.TextRun({text:cv.summary,size:20,font:'Arial'})]}));}
+    if((cv.education||[]).length){
+      children.push(makeH('Education'));
+      cv.education.forEach(function(e){
+        children.push(new D.Paragraph({spacing:{before:60,after:8},children:[new D.TextRun({text:e.degree||'',bold:true,size:20,font:'Arial'}),new D.TextRun({text:'   |   '+(e.institution||'')+(e.year?'   ('+e.year+')':''),size:20,font:'Arial',color:'444444'})]}));
+        if(e.score)children.push(new D.Paragraph({spacing:{before:0,after:8},children:[new D.TextRun({text:'Score: '+e.score,size:19,font:'Arial',italics:true,color:'666666'})]}));
+      });
+    }
+    if(cv.skills&&((cv.skills.technical||[]).length||(cv.skills.soft||[]).length)){
+      children.push(makeH('Skills'));
+      if((cv.skills.technical||[]).length)children.push(new D.Paragraph({spacing:{before:50,after:10},children:[new D.TextRun({text:'Technical:   ',bold:true,size:20,font:'Arial'}),new D.TextRun({text:cv.skills.technical.join('  |  '),size:20,font:'Arial'})]}));
+      if((cv.skills.soft||[]).length)children.push(new D.Paragraph({spacing:{before:10,after:20},children:[new D.TextRun({text:'Soft Skills:   ',bold:true,size:20,font:'Arial'}),new D.TextRun({text:cv.skills.soft.join('  |  '),size:20,font:'Arial'})]}));
+    }
+    if((cv.experience||[]).length){
+      children.push(makeH('Experience'));
+      cv.experience.forEach(function(ex){
+        children.push(new D.Paragraph({spacing:{before:70,after:8},children:[new D.TextRun({text:ex.title||'',bold:true,size:20,font:'Arial'}),new D.TextRun({text:'   |   '+(ex.org||'')+'   |   '+(ex.duration||''),size:20,font:'Arial',color:'555555'})]}));
+        (ex.bullets||[]).forEach(function(b){children.push(makeBullet(b));});
+      });
+    }
+    if((cv.projects||[]).length){
+      children.push(makeH('Projects'));
+      cv.projects.forEach(function(p){
+        children.push(new D.Paragraph({spacing:{before:70,after:8},children:[new D.TextRun({text:p.name||'',bold:true,size:20,font:'Arial'}),p.tech?new D.TextRun({text:'   |   '+p.tech,size:18,font:'Arial',italics:true,color:'666666'}):new D.TextRun({text:''})]}));
+        (p.bullets||[]).forEach(function(b){children.push(makeBullet(b));});
+      });
+    }
+    var certs=(cv.certifications||[]).filter(function(c){return c&&c.length>2;});
+    if(certs.length){children.push(makeH('Certifications'));certs.forEach(function(c){children.push(makeBullet(c));});}
+    var ach=(cv.achievements||[]).filter(function(a){return a&&a.length>2;});
+    if(ach.length){children.push(makeH('Achievements'));ach.forEach(function(a){children.push(makeBullet(a));});}
+
+    var doc=new D.Document({
+      numbering:{config:[{reference:'b',levels:[{level:0,format:D.LevelFormat.BULLET,text:'•',alignment:D.AlignmentType.LEFT,style:{paragraph:{indent:{left:480,hanging:240}}}}]}]},
+      sections:[{properties:{page:{size:{width:12240,height:15840},margin:{top:1080,right:1080,bottom:1080,left:1080}}},children:children}]
+    });
+    var buffer=await D.Packer.toBuffer(doc);
+    var blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;
+    a.download='Refined_CV_'+(cv.name||'Student').replace(/\s+/g,'_')+'.docx';
+    a.click();URL.revokeObjectURL(url);
+    btn.textContent='Downloaded!';btn.disabled=false;
+    setStep(4);document.getElementById('dlNote').style.display='block';
+  }catch(e){
+    btn.disabled=false;btn.textContent='Download as Word (.docx)';
+    showErr('Download failed: '+e.message);
+  }
+}
+
+function resetApp(){
+  b64=null;fName='';cvText='';parsed=null;
+  document.getElementById('chipWrap').style.display='none';
+  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('fi').value='';
+  document.getElementById('uploadSec').style.display='block';
+  document.getElementById('loadSec').style.display='none';
+  document.getElementById('resultSec').style.display='none';
+  document.getElementById('dlNote').style.display='none';
+  document.getElementById('warnBox').style.display='none';
+  document.getElementById('dlBtn').textContent='Download as Word (.docx)';
+  hideErr();setStep(1);window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
